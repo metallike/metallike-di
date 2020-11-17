@@ -11,6 +11,7 @@
 namespace Metallike\Component\DependencyInjection;
 
 use Metallike\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Metallike\Component\DependencyInjection\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 
@@ -140,7 +141,11 @@ class Container implements ContainerInterface
 
     private function resolve(string $id)
     {
-        $reflector = new ReflectionClass($this->services[$id]);
+        try {
+            $reflector = new ReflectionClass($this->services[$id]);
+        } catch (\ReflectionException $e) {
+            throw new NotFoundException(sprintf('Service "%s" does not exist.', $this->services[$id]));
+        }
 
         if (!$reflector->isInstantiable()) {
             throw new \Exception(sprintf('Service "%s" is not instantiable', $this->services[$id]));
