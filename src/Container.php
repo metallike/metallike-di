@@ -141,12 +141,11 @@ class Container implements ContainerInterface
 
     private function resolve(string $id)
     {
-        try {
-            $reflector = new ReflectionClass($this->services[$id]);
-        } catch (\ReflectionException $e) {
-            echo $e->getMessage();
-            //throw new NotFoundException(sprintf('Service "%s" does not exist.', $this->services[$id]));
+        if (!class_exists($this->services[$id])) {
+            throw new NotFoundException(sprintf('Service "%s" does not exist.', $this->services[$id]));
         }
+
+        $reflector = new ReflectionClass($this->services[$id]);
 
         if (!$reflector->isInstantiable()) {
             throw new \Exception(sprintf('Service "%s" is not instantiable', $this->services[$id]));
