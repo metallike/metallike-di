@@ -13,8 +13,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": "^7.2",
-        "psr/container": "*",
-        "metallike/error": "*"
+        "psr/container": "*"
     },
     "autoload": {
         "psr-4": {
