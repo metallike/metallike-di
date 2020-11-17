@@ -144,7 +144,8 @@ class Container implements ContainerInterface
         try {
             $reflector = new ReflectionClass($this->services[$id]);
         } catch (\ReflectionException $e) {
-            throw new NotFoundException(sprintf('Service "%s" does not exist.', $this->services[$id]));
+            echo $e->getMessage();
+            //throw new NotFoundException(sprintf('Service "%s" does not exist.', $this->services[$id]));
         }
 
         if (!$reflector->isInstantiable()) {
@@ -172,7 +173,7 @@ class Container implements ContainerInterface
 
             if (null === $dependency) {
                 if (!$parameter->isDefaultValueAvailable()) {
-                    throw new \Exception(sprintf('Cannot resolve class dependency "%s".', $parameter->name));
+                    throw new InvalidArgumentException(sprintf('Cannot resolve class dependency "%s".', $parameter->name));
                 }
 
                 $dependencies[] = $parameter->getDefaultValue();
