@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Metallike\\Component\\DependencyInjection\\": ""
+            "Metallike\\Component\\DependencyInjection\\": "src/"
         }
     }
 }
