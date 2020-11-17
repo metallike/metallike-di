@@ -75,7 +75,7 @@ class Container implements ContainerInterface
      * Sets a parameter.
      *
      * @param string $id    The ID (name) of the parameter.
-     * @param        $value The value of the parameter.
+     * @param mixed  $value The value of the parameter.
      * @param bool   $lock
      *
      * @throws InvalidArgumentException
