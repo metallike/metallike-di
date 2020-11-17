@@ -12,6 +12,7 @@ namespace Metallike\Component\DependencyInjection;
 
 use Metallike\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
 
 /**
  * A psr-11 compliant dependency injection container.
@@ -32,12 +33,12 @@ class Container implements ContainerInterface
      * Sets a service.
      *
      * @param string      $id      The ID (name) of the service
-     * @param object|null $service The service instance
+     * @param string|null $service The service instance
      * @param bool        $lock    The lock status
      *
      * @throws InvalidArgumentException
      */
-    public function set(string $id, ?object $service, $lock = false)
+    public function set(string $id, ?string $service, $lock = false)
     {
         // abort if service id eq default container id
         if (self::DEFAULT_CONTAINER_ID === $id) {
@@ -106,11 +107,11 @@ class Container implements ContainerInterface
     }
 
     /**
-     * @param string      $id
-     * @param object|null $service
-     * @param bool        $lock
+     * @param string $id
+     * @param string $service
+     * @param bool   $lock
      */
-    private function add(string $id, object $service, bool $lock)
+    private function add(string $id, string $service, bool $lock)
     {
         $this->services[$id] = $service;
         $this->lockedServices[$id] = $lock;
@@ -118,10 +119,10 @@ class Container implements ContainerInterface
 
     /**
      * @param string $id
-     * @param object $service
+     * @param string $service
      * @param bool   $lock
      */
-    private function update(string $id, object $service, bool $lock)
+    private function update(string $id, string $service, bool $lock)
     {
         $this->add($id, $service, $lock);
     }
@@ -139,6 +140,42 @@ class Container implements ContainerInterface
 
     private function resolve(string $id)
     {
+        $reflector = new ReflectionClass($this->services[$id]);
 
+        if (!$reflector->isInstantiable()) {
+            throw new \Exception(sprintf('Service "%s" is not instantiable', $this->services[$id]));
+        }
+
+        $constructor = $reflector->getConstructor();
+
+        if (null === $constructor) {
+            return $reflector->newInstance();
+        }
+
+        $constructorParameters = $constructor->getParameters();
+        $constructorDependencies = $this->getDependencies($constructorParameters);
+
+        return $reflector->newInstanceArgs($constructorDependencies);
+    }
+
+    private function getDependencies($parameters): array
+    {
+        $dependencies = [];
+
+        foreach ($parameters as $parameter) {
+            $dependency = $parameter->getClass();
+
+            if (null === $dependency) {
+                if (!$parameter->isDefaultValueAvailable()) {
+                    throw new \Exception(sprintf('Cannot resolve class dependency "%s".', $parameter->name));
+                }
+
+                $dependencies[] = $parameter->getDefaultValue();
+            } else {
+                $dependencies[] = $this->get(array_search($dependency->name, $this->services));
+            }
+        }
+
+        return $dependencies;
     }
 }
