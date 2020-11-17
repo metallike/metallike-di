@@ -15,6 +15,7 @@ use Metallike\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Metallike\Component\DependencyInjection\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * A psr-11 compliant dependency injection container.
@@ -44,7 +45,7 @@ class Container implements ContainerInterface
     {
         // abort if service id eq default container id
         if (self::DEFAULT_CONTAINER_ID === $id) {
-            throw new InvalidArgumentException(sprintf('You cannot set service "%s".', self::DEFAULT_CONTAINER_ID));
+            throw new InvalidArgumentException(sprintf('You cannot set service "%s" because it is a protected name.', self::DEFAULT_CONTAINER_ID));
         }
 
         // update or unset service if id already exists
@@ -69,16 +70,38 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Sets a parameter.
+     *
+     * @param string $id    The ID (name) of the parameter.
+     * @param        $value The value of the parameter.
+     */
+    public function setParameter(string $id, $value)
+    {
+
+    }
+
+    /**
+     * Returns a service.
+     *
      * @param string $id
      *
-     * @return mixed|string
+     * @return mixed|object
+     * @throws ContainerException
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
     public function get(string $id)
     {
+        if (!$this->has($id)) {
+            throw new NotFoundException(sprintf('Service "%s" not found.', $id));
+        }
+
         return $this->resolve($id);
     }
 
     /**
+     * Returns true if the service is defined.
+     *
      * @param string $id
      *
      * @return bool
@@ -109,6 +132,8 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Defines the service.
+     *
      * @param string $id
      * @param string $service
      * @param bool   $lock
@@ -120,6 +145,8 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Updates the service.
+     *
      * @param string $id
      * @param string $service
      * @param bool   $lock
@@ -148,7 +175,7 @@ class Container implements ContainerInterface
      * @return object
      * @throws ContainerException
      * @throws NotFoundException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     private function resolve(string $id)
     {
