@@ -10,6 +10,7 @@
 
 namespace Metallike\Component\DependencyInjection;
 
+use Metallike\Component\DependencyInjection\Exception\ContainerException;
 use Metallike\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Metallike\Component\DependencyInjection\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
@@ -139,6 +140,16 @@ class Container implements ContainerInterface
         unset($this->lockedServices[$id]);
     }
 
+    /**
+     * Resolves a single service.
+     *
+     * @param string $id
+     *
+     * @return object
+     * @throws ContainerException
+     * @throws NotFoundException
+     * @throws \ReflectionException
+     */
     private function resolve(string $id)
     {
         if (!class_exists($this->services[$id])) {
@@ -148,7 +159,7 @@ class Container implements ContainerInterface
         $reflector = new ReflectionClass($this->services[$id]);
 
         if (!$reflector->isInstantiable()) {
-            throw new \Exception(sprintf('Service "%s" is not instantiable', $this->services[$id]));
+            throw new ContainerException(sprintf('Service "%s" is not instantiable', $this->services[$id]));
         }
 
         $constructor = $reflector->getConstructor();
@@ -163,6 +174,14 @@ class Container implements ContainerInterface
         return $reflector->newInstanceArgs($constructorDependencies);
     }
 
+    /**
+     * Resolves all dependencies.
+     *
+     * @param $parameters
+     *
+     * @return array
+     * @throws ContainerException
+     */
     private function getDependencies($parameters): array
     {
         $dependencies = [];
@@ -172,7 +191,7 @@ class Container implements ContainerInterface
 
             if (null === $dependency) {
                 if (!$parameter->isDefaultValueAvailable()) {
-                    throw new InvalidArgumentException(sprintf('Cannot resolve class dependency "%s".', $parameter->name));
+                    throw new ContainerException(sprintf('Cannot resolve class dependency "%s".', $parameter->name));
                 }
 
                 $dependencies[] = $parameter->getDefaultValue();
