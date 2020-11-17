@@ -21,6 +21,8 @@ use ReflectionException;
  * A psr-11 compliant dependency injection container.
  *
  * @author Florian Brandl <fb@metallike.de>
+ *
+ * @todo implement tagging of services
  */
 class Container implements ContainerInterface
 {
@@ -33,6 +35,8 @@ class Container implements ContainerInterface
     protected $lockedServices = [];
     protected $parameters = [];
     protected $lockedParameters = [];
+    protected $tags = [];
+    protected $taggedServices = [];
 
     /**
      * Sets a service.
@@ -110,6 +114,8 @@ class Container implements ContainerInterface
      * @throws ContainerException
      * @throws NotFoundException
      * @throws ReflectionException
+     * 
+     * @todo Try to create the service if it does not exist
      */
     public function get(string $id)
     {
@@ -168,6 +174,40 @@ class Container implements ContainerInterface
 
         return false;
     }
+    
+    /**
+     * Tags a service.
+     *
+     * @param string $id
+     * @param string $tag
+     *
+     * @todo how to do this? maybe return $this in set method?
+     */
+    public function addTag(string $id, string $tag)
+    {
+        if ($this->tagExists($id)) {
+            
+        }
+        
+        $this->tags[] = $id;
+    }
+    
+    /**
+     * @todo what to do here?
+     * Returns true if the tag exists.
+     *
+     * @param string $id
+     *
+     * @return bool
+     */
+    public function tagExists(string $id): bool
+    {
+        if (isset($this->tags[$id]) {
+            return true;
+        }
+            
+        return false;
+    }
 
     /**
      * Returns true if the service is locked.
@@ -176,7 +216,7 @@ class Container implements ContainerInterface
      *
      * @return bool
      */
-    private function isLocked(string $id): bool
+    public function isLocked(string $id): bool
     {
         if ($this->lockedServices[$id]) {
             return true;
@@ -192,7 +232,7 @@ class Container implements ContainerInterface
      *
      * @return bool
      */
-    private function isLockedParameter(string $id): bool
+    public function isLockedParameter(string $id): bool
     {
         if ($this->lockedParameters[$id]) {
             return true;
