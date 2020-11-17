@@ -1,13 +1,22 @@
 {
     "name": "metallike/metallike-di",
+    "description": "",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Florian Brandl",
-            "email": "fb@metallike.de"
+            "email": "fb@metallike.de",
+            "role": "Developer"
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "psr/container": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Metallike\\Component\\DependencyInjection\\": ""
+        }
+    }
 }
