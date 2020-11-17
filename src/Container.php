@@ -82,7 +82,11 @@ class Container implements ContainerInterface
      */
     public function has(string $id): bool
     {
-        // TODO: Implement has() method.
+        if (isset($this->services[$id])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -135,6 +139,6 @@ class Container implements ContainerInterface
 
     private function resolve(string $id)
     {
-        
+
     }
 }
