@@ -31,6 +31,8 @@ class Container implements ContainerInterface
 
     protected $services = [];
     protected $lockedServices = [];
+    protected $parameters = [];
+    protected $lockedParameters = [];
 
     /**
      * Sets a service.
@@ -60,10 +62,10 @@ class Container implements ContainerInterface
             }
 
             return;
-        } else {
-            if (null === $service) {
-                throw new InvalidArgumentException(sprintf('You cannot unset an undefined service "%s".', $id));
-            }
+        }
+
+        if (null === $service) {
+            throw new InvalidArgumentException(sprintf('You cannot unset an undefined service "%s".', $id));
         }
 
         $this->add($id, $service, $lock);
@@ -74,10 +76,29 @@ class Container implements ContainerInterface
      *
      * @param string $id    The ID (name) of the parameter.
      * @param        $value The value of the parameter.
+     * @param bool   $lock
+     *
+     * @throws InvalidArgumentException
      */
-    public function setParameter(string $id, $value)
+    public function setParameter(string $id, $value, bool $lock = false)
     {
+        if ($this->hasParameter($id)) {
+            if ($this->isLockedParameter($id)) {
+                throw new InvalidArgumentException(sprintf('The parameter "%s" is locked, you cannot replace or unset it.', $id));
+            } elseif (null === $value) {
+                $this->removeParameter($id);
+            } else {
+                $this->updateParameter($id, $value, $lock);
+            }
 
+            return;
+        }
+
+        if (null === $value) {
+            throw new InvalidArgumentException(sprintf('You cannot unset an undefined parameter "%s".', $id));
+        }
+
+        $this->addParameter($id, $value, $lock);
     }
 
     /**
@@ -100,6 +121,23 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Returns a parameter.
+     *
+     * @param string $id
+     *
+     * @return mixed
+     * @throws NotFoundException
+     */
+    public function getParameter(string $id)
+    {
+        if (!$this->hasParameter($id)) {
+            throw new NotFoundException(sprintf('Parameter "%s" not found.', $id));
+        }
+
+        return $this->parameters[$id];
+    }
+
+    /**
      * Returns true if the service is defined.
      *
      * @param string $id
@@ -116,7 +154,23 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Checks if a service is locked.
+     * Returns true if the parameter is defined.
+     *
+     * @param string $id
+     *
+     * @return bool
+     */
+    public function hasParameter(string $id): bool
+    {
+        if (isset($this->parameters[$id])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if the service is locked.
      *
      * @param string $id
      *
@@ -125,6 +179,22 @@ class Container implements ContainerInterface
     private function isLocked(string $id): bool
     {
         if ($this->lockedServices[$id]) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if the parameter is locked.
+     *
+     * @param string $id
+     *
+     * @return bool
+     */
+    private function isLockedParameter(string $id): bool
+    {
+        if ($this->lockedParameters[$id]) {
             return true;
         }
 
@@ -145,6 +215,19 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Defines the parameter.
+     *
+     * @param string $id
+     * @param        $value
+     * @param bool   $lock
+     */
+    private function addParameter(string $id, $value, bool $lock)
+    {
+        $this->parameters[$id] = $value;
+        $this->lockedParameters[$id] = $lock;
+    }
+
+    /**
      * Updates the service.
      *
      * @param string $id
@@ -157,7 +240,19 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Remove a service from the container.
+     * Updates the parameter.
+     *
+     * @param string $id
+     * @param        $value
+     * @param bool   $lock
+     */
+    private function updateParameter(string $id, $value, bool $lock)
+    {
+        $this->addParameter($id, $value, $lock);
+    }
+
+    /**
+     * Removes a service from the container.
      *
      * @param string $id
      */
@@ -165,6 +260,17 @@ class Container implements ContainerInterface
     {
         unset($this->services[$id]);
         unset($this->lockedServices[$id]);
+    }
+
+    /**
+     * Removes a parameter from the container.
+     *
+     * @param string $id
+     */
+    private function removeParameter(string $id)
+    {
+        unset($this->parameters[$id]);
+        unset($this->lockedParameters[$id]);
     }
 
     /**
@@ -202,12 +308,12 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Resolves all dependencies.
-     *
      * @param $parameters
      *
      * @return array
      * @throws ContainerException
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
     private function getDependencies($parameters): array
     {
