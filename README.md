@@ -9,7 +9,7 @@ This software is part of the Metallike Framework. Nevertheless, the functionalit
 To install `metallike/metallike-di` simply run the following composer command:
 
 ```shell script
-composer require metallike/metallike-di
+composer require metallike/di
 ``` 
 
 That's it!

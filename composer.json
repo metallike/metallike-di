@@ -1,6 +1,6 @@
 {
     "name": "metallike/di",
-    "description": "",
+    "description": "Metallike Dependency Injection is a PHP DI Container that allows to easily manager your project dependencies.",
     "type": "library",
     "license": "MIT",
     "authors": [
