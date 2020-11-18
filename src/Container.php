@@ -23,6 +23,8 @@ use ReflectionException;
  * @author Florian Brandl <fb@metallike.de>
  *
  * @todo implement tagging of services
+ * @todo aliasing
+ * @todo make all services private, only aliased or explicit defined services are public
  */
 class Container implements ContainerInterface
 {
@@ -202,7 +204,7 @@ class Container implements ContainerInterface
      */
     public function tagExists(string $id): bool
     {
-        if (isset($this->tags[$id]) {
+        if (isset($this->tags[$id])) {
             return true;
         }
             
